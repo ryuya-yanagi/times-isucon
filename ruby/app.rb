@@ -263,7 +263,7 @@ module Isuconp
       if post_count > 0
         placeholder = (['?'] * post_ids.length).join(",")
         commented_count = db.prepare("SELECT COUNT(*) AS count FROM `comments` WHERE `post_id` IN (#{placeholder})").execute(
-          *post_ids
+          *post_count
         ).first[:count]
       end
 
