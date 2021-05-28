@@ -280,7 +280,7 @@ module Isuconp
         FROM `posts`
         LEFT JOIN `users` ON posts.user_id = users.id
         WHERE posts.created_at <= ?
-        ORDER BY `posts.created_at` DESC
+        ORDER BY posts.created_at DESC
         LIMIT 20'
       ).execute(
         max_created_at.nil? ? nil : Time.iso8601(max_created_at).localtime
