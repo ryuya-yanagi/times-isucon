@@ -245,7 +245,7 @@ module Isuconp
       results = db.prepare('SELECT posts.id as id, posts.user_id as user_id, body, 
         posts.created_at as created_at, mime, account_name 
         FROM `posts`
-        LEFT JOIN `users` ON posts.user_id = users.id
+        LEFT JOIN `users` ON users.id = posts.user_id
         WHERE `user_id` = ? ORDER BY `created_at` DESC').execute(
         user[:id]
       )
@@ -255,15 +255,16 @@ module Isuconp
         user[:id]
       ).first[:count]
 
-      post_count = db.prepare('SELECT COUNT(*) AS count FROM `posts` WHERE `user_id` = ?').execute(
+      post_ids = db.prepare('SELECT `id` FROM `posts` WHERE `user_id` = ?').execute(
         user[:id]
-      ).first[:count]
+      ).map{|post| post[:id]}
+      post_count = post_ids.length
 
       commented_count = 0
       if post_count > 0
-        placeholder = (['?'] * post_count).join(",")
+        placeholder = (['?'] * post_ids.length).join(",")
         commented_count = db.prepare("SELECT COUNT(*) AS count FROM `comments` WHERE `post_id` IN (#{placeholder})").execute(
-          *post_count
+          *post_ids
         ).first[:count]
       end
 
