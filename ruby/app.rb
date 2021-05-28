@@ -104,27 +104,23 @@ module Isuconp
           post[:comment_count] = db.prepare('SELECT COUNT(*) AS `count` FROM `comments` WHERE `post_id` = ?').execute(
             post[:id]
           ).first[:count]
-
-          query = 'SELECT * FROM `comments` WHERE `post_id` = ? ORDER BY `created_at` DESC'
-          unless all_comments
-            query += ' LIMIT 3'
-          end
-          comments = db.prepare(query).execute(
+          
+          post[:user] = { "id" => post[:user_id], "account_name" => post[:account_name]}
+          dbcomments = db.prepare('SELECT comment, users.id as user_id, account_name FROM `comments`
+            LEFT JOIN `users` ON users.id = comments.user_id
+            WHERE `comments.post_id` = ? ORDER BY `comments.created_at` DESC LIMIT 3').execute(
             post[:id]
-          ).to_a
-          comments.each do |comment|
-            comment[:user] = db.prepare('SELECT * FROM `users` WHERE `id` = ?').execute(
-              comment[:user_id]
-            ).first
+          )
+
+          comments = []
+          dbcomments.to_a.each do |comment|
+            commenter = { "id" => comment[:user_id], "account_name" => comment[:account_name]}
+            comment[:user] = commenter
+            comments.push(comment)
           end
-          post[:comments] = comments.reverse
+          post[:comments] = comments
 
-          post[:user] = db.prepare('SELECT * FROM `users` WHERE `id` = ?').execute(
-            post[:user_id]
-          ).first
-
-          posts.push(post) if post[:user][:del_flg] == 0
-          break if posts.length >= POSTS_PER_PAGE
+          posts.push(post)
         end
 
         posts
@@ -224,7 +220,14 @@ module Isuconp
     get '/' do
       me = get_session_user()
 
-      results = db.query('SELECT `id`, `user_id`, `body`, `created_at`, `mime` FROM `posts` ORDER BY `created_at` DESC')
+      results = db.query('SELECT posts.id as id, posts.user_id as user_id, body, 
+        posts.created_at as created_at, mime, account_name
+        FROM `posts`
+        LEFT JOIN `users` ON posts.user_id = users.id
+        ORDER BY `created_at` DESC
+        LIMIT 20'
+      )
+
       posts = make_posts(results)
 
       erb :index, layout: :layout, locals: { posts: posts, me: me }
