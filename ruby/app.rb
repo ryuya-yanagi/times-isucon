@@ -120,8 +120,6 @@ module Isuconp
           end
           post[:comments] = comments
 
-          puts post
-
           posts.push(post)
         end
 
