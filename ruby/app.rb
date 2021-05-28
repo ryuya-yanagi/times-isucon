@@ -105,7 +105,7 @@ module Isuconp
             post[:id]
           ).first[:count]
           
-          post[:user] = { "id" => post[:user_id], "account_name" => post[:account_name]}
+          post[:user] = { "id": post[:user_id], "account_name": post[:account_name]}
           dbcomments = db.prepare('SELECT comment, users.id as user_id, account_name FROM `comments`
             LEFT JOIN `users` ON users.id = comments.user_id
             WHERE comments.post_id = ? ORDER BY comments.created_at DESC LIMIT 3').execute(
@@ -114,7 +114,7 @@ module Isuconp
 
           comments = []
           dbcomments.to_a.each do |comment|
-            commenter = { "id" => comment[:user_id], "account_name" => comment[:account_name]}
+            commenter = { "id": comment[:user_id], "account_name": comment[:account_name]}
             comment[:user] = commenter
             comments.push(comment)
           end
@@ -234,7 +234,7 @@ module Isuconp
     end
 
     get '/@:account_name' do
-      user = db.prepare('SELECT * FROM `users` WHERE `account_name` = ? AND `del_flg` = 0').execute(
+      user = db.prepare('SELECT id, account_name FROM `users` WHERE `account_name` = ? AND `del_flg` = 0').execute(
         params[:account_name]
       ).first
 
@@ -243,7 +243,9 @@ module Isuconp
       end
 
       results = db.prepare('SELECT posts.id as id, posts.user_id as user_id, body, 
-        posts.created_at as created_at, mime, account_name FROM `posts` 
+        posts.created_at as created_at, mime, account_name 
+        FROM `posts`
+        LEFT JOIN `users` ON posts.user_id = users.id
         WHERE `user_id` = ? ORDER BY `created_at` DESC').execute(
         user[:id]
       )
@@ -253,10 +255,9 @@ module Isuconp
         user[:id]
       ).first[:count]
 
-      post_ids = db.prepare('SELECT `id` FROM `posts` WHERE `user_id` = ?').execute(
+      post_count = db.prepare('SELECT COUNT(*) AS count FROM `posts` WHERE `user_id` = ?').execute(
         user[:id]
-      ).map{|post| post[:id]}
-      post_count = post_ids.length
+      ).first[:count]
 
       commented_count = 0
       if post_count > 0
