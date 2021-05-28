@@ -3,10 +3,6 @@ require 'mysql2'
 require 'rack-flash'
 require 'shellwords'
 require 'rack/session/dalli'
-require 'rubygems'
-require 'bundler'
-
-Bundler.require
 
 module Isuconp
   class App < Sinatra::Base
