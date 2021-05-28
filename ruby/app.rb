@@ -105,9 +105,7 @@ module Isuconp
             post[:id]
           ).first[:count]
           
-          user[:id] = post[:user_id]
-          user[:account_name] = post[:account_name]
-          post[:user] = user
+          post[:user] = { "id" => post[:user_id], "account_name" => post[:account_name]}
           dbcomments = db.prepare('SELECT comment, users.id as user_id, account_name FROM `comments`
             LEFT JOIN `users` ON users.id = comments.user_id
             WHERE comments.post_id = ? ORDER BY comments.created_at DESC LIMIT 3').execute(
