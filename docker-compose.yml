@@ -2,6 +2,7 @@ version: "2.2"
 services:
   nginx:
     image: nginx:1.20.0
+    container_name: nginx
     volumes:
       - ./etc/nginx/conf.d:/etc/nginx/conf.d
       - ./public:/public
@@ -14,6 +15,7 @@ services:
     cpus: 1
     mem_limit: 1g
     build: ruby/ # Go実装の場合は golang/
+    container_name: app
     environment:
       ISUCONP_DB_HOST: mysql
       ISUCONP_DB_PORT: 3306
@@ -32,6 +34,7 @@ services:
     cpus: 1
     mem_limit: 1g
     image: mysql:8.0.25
+    container_name: mysql
     environment:
       - "TZ=Asia/Tokyo"
       - "MYSQL_ROOT_PASSWORD=root"
