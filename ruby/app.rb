@@ -3,6 +3,10 @@ require 'mysql2'
 require 'rack-flash'
 require 'shellwords'
 require 'rack/session/dalli'
+require 'rubygems'
+require 'bundler'
+
+Bundler.require
 
 module Isuconp
   class App < Sinatra::Base
@@ -242,7 +246,9 @@ module Isuconp
         return 404
       end
 
-      results = db.prepare('SELECT `id`, `user_id`, `body`, `mime`, `created_at` FROM `posts` WHERE `user_id` = ? ORDER BY `created_at` DESC').execute(
+      results = db.prepare('SELECT posts.id as id, posts.user_id as user_id, body, 
+        posts.created_at as created_at, mime, account_name FROM `posts` 
+        WHERE `user_id` = ? ORDER BY `created_at` DESC').execute(
         user[:id]
       )
       posts = make_posts(results)
